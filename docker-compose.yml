@@ -1,0 +1,43 @@
+services:
+  # The Database
+  db:
+    image: postgres:16-alpine
+    container_name: chat-pdf-db
+    restart: always
+    environment:
+      - POSTGRES_USER=hemantha
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=chat_pdf_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # The NestJS API
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: chat-pdf-api
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://hemantha:root@db:5432/chat_pdf_db
+    depends_on:
+      - db
+
+  # The Next.js Web App
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: chat-pdf-web
+    ports:
+      - 3000:3000
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
